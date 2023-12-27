@@ -1,9 +1,26 @@
-import { Controller, Get , HttpCode, Req, HttpStatus, Post, Res } from "@nestjs/common";
+import { Controller, Get , HttpCode, Req, HttpStatus, Post, Res, Inject } from "@nestjs/common";
 import { Request, Response } from 'express';
+import { UserStore } from "./user.store";
 
 // controller for 'users' routes
 @Controller('/users')
 export class UsersController{
+
+    // using 'UserStore' dependency
+    constructor(
+                // class depend. 
+                private store:UserStore, 
+                // primitive depend.
+                @Inject('DB_Name') private dbName:string,
+                // factory depend.
+                @Inject('Event_Store') private fun){
+        console.log(this.store , this.dbName);
+    }
+
+    // second method of using injectable dependencies
+    // constructor(@Inject(UserStore) private store:UserStore){
+    //     console.log(this.store)
+    // }
 
     // get req ('/users/')
     @Get()
