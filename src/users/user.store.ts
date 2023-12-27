@@ -1,6 +1,6 @@
 // an dummy injectable dependency
 
-import { Injectable } from "@nestjs/common";
+import { Injectable, Scope } from "@nestjs/common";
 
 // interface for user's data
 interface User{
@@ -10,7 +10,12 @@ interface User{
 }
 
 // making injectable dependency
-@Injectable()
+@Injectable(
+    // define scope of depend. DEFAULT/REQUEST/TRANSIENT
+    // {
+        // scope:Scope.DEFAULT
+    // }
+)
 export class UserStore{
     private store = new Map <number,User>;
 
