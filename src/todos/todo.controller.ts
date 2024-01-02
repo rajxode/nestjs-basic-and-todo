@@ -1,17 +1,19 @@
 
 // all the required dependencies
-import { Body, Controller, Delete, Get, Param, Post, Put } from "@nestjs/common";
+import { BadRequestException, Body, Controller, Delete, Get, HttpException, HttpStatus, Param, ParseIntPipe, Post, Put } from "@nestjs/common";
+import { TodoService } from "./todo.service";
+import { Todo } from "src/schema/todo.schema";
 
-// todo list and index of todos
-let todo = [];
-let id = 1;
 
+// for local variables
+// // todo list and index of todos
+// let todo = [];
+// let id = 1;
 
 // interface type for todo items
-interface Todo{
-    id:number,
+interface TodoDto{
     name:string,
-    done:boolean
+    status:string
 }
 
 
@@ -19,63 +21,109 @@ interface Todo{
 @Controller('/todo')
 export class TodoController{
 
-    // get list of all the todos
+    constructor(private todoService: TodoService){}
+
+    // ============ following code for CRUD operation on local variables ===========
+
+    // // get list of all the todos
+    // @Get()
+    // getTodo(){
+    //     return {
+    //         success:true,
+    //         todo
+    //     };
+    // }
+
+    // // add a new todo
+    // @Post()
+    // addTodo(@Body() requestBody:Todo){
+    //     // data passed in req body
+    //     requestBody.id = id;
+    //     // increase index of todo
+    //     id=id+1;
+    //     // add todo
+    //     todo.push(requestBody);
+    //     // return response
+    //     return{
+    //         success:true,
+    //         message:'New Todo added'
+    //     }
+    // }
+
+    // // udpate a todo by id
+    // @Put('/:id')
+    // // get id by param and todo data in req body
+    // // ParseIntPipe to convert the string value in param,body,query into number
+    // updateTodo(@Param('id', ParseIntPipe) param, @Body() requestBody:Todo){
+    //     // exception / error handling in nestjs
+    //     if(param < 0){
+    //         throw new HttpException('Invalid Data',HttpStatus.BAD_REQUEST)
+    //     }
+    //     // filter out the element with id equal to param
+    //     const newTodo = todo.filter((item) => item.id !== param);
+    //     // update the element and append it to the new list
+    //     requestBody.id = param;
+    //     newTodo.push(requestBody);
+    //     // change the tood list
+    //     todo = newTodo;
+    //     // return response
+    //     return {
+    //         success:true,
+    //         message:'Todo Updated'
+    //     }
+    // }
+
+    // // delete a todo by id
+    // @Delete('/:id')
+    // // defining the return error status code for wrong input data
+    // deleteTodo(@Param('id' ,new ParseIntPipe({errorHttpStatusCode:HttpStatus.NOT_ACCEPTABLE})) param:number){
+    //     // bad request exception
+    //     if(param < 0){
+    //         throw new BadRequestException('Invalid Data');
+    //     }
+    //     // filter out the todo
+    //     const newTodo = todo.filter((item) => item.id !== param);
+    //     // update the list with new todo
+    //     todo = newTodo;
+    //     // return response
+    //     return {
+    //         success:true,
+    //         message:'Todo Deleted'
+    //     }
+    // }
+
+
+    // ========== for CRUD operation using MONGODB ============ 
+    // get list of all the todos in db
     @Get()
-    getTodo(){
-        return {
-            success:true,
-            todo
-        };
+    gettodos():Promise<Todo[]>{
+        return this.todoService.findAll();
     }
 
-
-    // add a new todo
+    // add a new todo in db
     @Post()
-    addTodo(@Body() requestBody:Todo){
-        // data passed in req body
-        requestBody.id = id;
-        // increase index of todo
-        id=id+1;
-        // add todo
-        todo.push(requestBody);
-        // return response
-        return{
-            success:true,
-            message:'New Todo added'
-        }
+    async createTodo(@Body() todo:TodoDto):Promise<Todo>{
+        return this.todoService.createTodo(todo);
+    }
+    
+    // get a single todo by id from db
+    @Get('/:id')
+    async getTodoById(@Param('id') id:string):Promise<Todo>{
+        return this.todoService.getTodoById(id);
     }
 
-
-    // udpate a todo by id
+    // update a todo by id 
     @Put('/:id')
-    // get id by param and todo data in req body
-    updateTodo(@Param('id') param, @Body() requestBody:Todo){
-        // filter out the element with id equal to param
-        const newTodo = todo.filter((item) => item.id !== Number(param));
-        // update the element and append it to the new list
-        requestBody.id = Number(param);
-        newTodo.push(requestBody);
-        // change the tood list
-        todo = newTodo;
-        // return response
-        return {
-            success:true,
-            message:'Todo Updated'
-        }
+    async updateTodo(@Param('id') id:string, @Body() todo:Todo):Promise<Todo>{
+        return this.todoService.updateTodo(id,todo);
     }
-
 
     // delete a todo by id
     @Delete('/:id')
-    deleteTodo(@Param('id') param){
-        // filter out the todo
-        const newTodo = todo.filter((item) => item.id !== Number(param));
-        // update the list with new todo
-        todo = newTodo;
-        // return response
+    async deleteTodo(@Param('id') id:string){
+        this.todoService.deleteTodo(id);
         return {
-            success:true,
-            message:'Todo Deleted'
-        }
+            message:'Todo deleted'
+        };
     }
 }
